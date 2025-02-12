@@ -1,4 +1,4 @@
-import { desc, and, eq, isNull } from 'drizzle-orm';
+import { desc, and, eq, isNull, gte, lte } from 'drizzle-orm';
 import { db } from './drizzle';
 import { activityLogs, teamMembers, teams, users, meals } from './schema';
 import { cookies } from 'next/headers';
@@ -210,4 +210,28 @@ export async function deleteMeal(mealId: number, userId: number) {
       eq(meals.id, mealId),
       eq(meals.userId, userId)
     ));
+}
+
+export async function getMealsByDateRange(userId: number, startDate?: string, endDate?: string) {
+  let query = db
+    .select()
+    .from(meals)
+    .where(eq(meals.userId, userId));
+
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    query = query.where(
+      and(
+        gte(meals.createdAt, start),
+        lte(meals.createdAt, end)
+      )
+    );
+  }
+
+  return await query.orderBy(desc(meals.createdAt));
 }
