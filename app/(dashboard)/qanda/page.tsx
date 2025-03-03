@@ -38,10 +38,10 @@ const initialQuestions: Question[] = [
         content: "Try taking photos of your meals and using the AI analysis feature. Also, many restaurant chains have their nutritional information available online.",
         likes: 12,
         likedBy: [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date('2024-01-20T10:30:00').toISOString() // Set a fixed initial date
       }
     ],
-    timestamp: new Date().toISOString()
+    timestamp: new Date('2024-01-20T10:30:00').toISOString() // Set a fixed initial date
   },
   {
     id: 2,
@@ -58,35 +58,12 @@ export default function QandAPage() {
     try {
       const savedQuestions = localStorage.getItem('questions');
       if (savedQuestions) {
-        const parsedQuestions = JSON.parse(savedQuestions);
-        // Remove timestamps when loading from localStorage
-        return parsedQuestions.map((q: Question) => ({
-          ...q,
-          timestamp: new Date().toISOString(), // Always use current time
-          answers: q.answers.map(a => ({
-            ...a,
-            timestamp: new Date().toISOString() // Always use current time
-          }))
-        }));
+        return JSON.parse(savedQuestions);
       }
-      return initialQuestions.map(q => ({
-        ...q,
-        timestamp: new Date().toISOString(),
-        answers: q.answers.map(a => ({
-          ...a,
-          timestamp: new Date().toISOString()
-        }))
-      }));
+      return initialQuestions;
     } catch (error) {
       console.error('Error parsing questions from localStorage:', error);
-      return initialQuestions.map(q => ({
-        ...q,
-        timestamp: new Date().toISOString(),
-        answers: q.answers.map(a => ({
-          ...a,
-          timestamp: new Date().toISOString()
-        }))
-      }));
+      return initialQuestions;
     }
   });
   const [newQuestion, setNewQuestion] = useState('');
@@ -173,37 +150,20 @@ export default function QandAPage() {
     localStorage.setItem('questions', JSON.stringify(updatedQuestions));
   };
 
-  // Add a function to get current questions with fresh timestamps
-  const getQuestionsWithCurrentTime = () => {
-    return questions.map(q => ({
-      ...q,
-      timestamp: new Date().toISOString(),
-      answers: q.answers.map(a => ({
-        ...a,
-        timestamp: new Date().toISOString()
-      }))
-    }));
-  };
-
-  // Modify the filtered questions to always use current time
-  const filteredQuestions = getQuestionsWithCurrentTime().filter(q => 
+  const filteredQuestions = questions.filter(q => 
     q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     q.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Update the formatTimestamp function to be more robust
   const formatTimestamp = (timestamp: string | undefined) => {
-    if (!timestamp) {
-      return 'Just now';
-    }
+    if (!timestamp) return 'Unknown time';
 
     try {
       const date = new Date(timestamp);
       
-      // Check if the date is valid
       if (isNaN(date.getTime())) {
-        console.warn('Invalid timestamp:', timestamp);
-        return 'Just now';
+        return 'Invalid date';
       }
       
       const now = new Date();
@@ -219,11 +179,12 @@ export default function QandAPage() {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: true
       }).format(date);
     } catch (error) {
       console.error('Error formatting timestamp:', error);
-      return 'Just now';
+      return 'Invalid date';
     }
   };
 
