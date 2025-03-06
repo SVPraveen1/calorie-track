@@ -146,7 +146,7 @@ export async function createMeal(
     protein: mealData.protein,
     carbs: mealData.carbs,
     fat: mealData.fat,
-    image_url: mealData.imageUrl,
+    imageurl: mealData.imageUrl,
   }).returning();
 }
 
